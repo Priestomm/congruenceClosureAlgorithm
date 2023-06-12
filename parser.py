@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 class Parser:
 
-    def __init__(self, graph: nx.DiGraph) -> None:
+    def __init__(self, graph = None) -> None:
         self.myParser = nestedExpr('(',')')
         self.G = graph
         self.idSet = set()
@@ -17,6 +17,9 @@ class Parser:
         for clause in clauses:
             leftSide = clause.split('=')[0]
             rightSide = clause.split('=')[1]
+            if "!=" in clause:
+                leftSide = clause.split('!=')[0]
+                rightSide = clause.split('!=')[1] 
             leftSide = leftSide.strip()
             rightSide = rightSide.strip()
             toParse.add(leftSide)
@@ -59,7 +62,21 @@ class Parser:
 
         self.setEdges()
 
-        return self.G
+        return 
+    
+    def splitEq(self, clauses: str):
+        equalSet = set()
+        nonEqualSet = set()
+        clauses = clauses.split("&")
+        for clause in clauses:
+            if "!=" in clause:
+                sides = clause.split("!=")
+                nonEqualSet.add((sides[0].strip(), sides[1].strip()))
+            else:
+                sides = clause.split("=")
+                equalSet.add((sides[0].strip(), sides[1].strip()))
+
+        return equalSet, nonEqualSet
     
     def parseClause(self, clause: list) -> list:
         tmp = []
@@ -106,6 +123,31 @@ class Parser:
             children = self.G.nodes[parent]['node'].args
             for child in children:
                 self.G.add_edge(parent, child)
+    
+    def subtermsSet(self) -> set():
+        retSet = set()
+        for node in self.G.nodes():
+            retSet.add((self.stringFromNode(self.G.nodes[node]['node']), node))
+        return retSet
+
+    def stringFromNode(self, node: Node):
+        retString = ""
+        retString += node.fn
+
+        if len(node.args) > 0:
+            retString += "("
+            for i, arg in enumerate(node.args):
+                retString += self.stringFromNode(self.G.nodes[arg]['node'])
+                if i + 1 < len(node.args):
+                    retString += ","
+            retString += ")"
+        return retString
+        
+    def nodeFromString(self, stringNode: str):
+        for pair in self.subtermsSet():
+            node, id = pair
+            if stringNode == node:
+                return self.G.nodes[id]['node']
 
     def newId(self) -> str:
         id = 1
@@ -119,7 +161,7 @@ class Parser:
 
 def main():
     prsr = Parser(nx.DiGraph())
-    clauses = "f(f(f(a)))=a & f(f(f(f(f(a)))))=a & f(a)=a "
+    clauses = "f(f(f(a)))=a & f(f(f(f(f(a)))))=a & f(a)!=a "
     graph = prsr.parse(clauses)
     for node in graph.nodes():
         print(graph.nodes[node]['node'])

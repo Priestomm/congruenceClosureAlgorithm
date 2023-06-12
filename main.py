@@ -4,16 +4,14 @@ from node import Node
 import itertools
 import re
     
-class congruenceAlgorithm:
+class CongruenceAlgorithm:
 
     def __init__(self, g: nx.Graph) -> None:
         self.g = g
 
     def node(self, i: int) -> Node:
-        for node in self.g.nodes():
-            if node.id == i:
-                return node
-        return None
+        return self.g.nodes[i]['node']
+    
      
     def find(self, i: int) -> Node:
         n = self.node(i)
@@ -21,14 +19,14 @@ class congruenceAlgorithm:
         else: return self.find(n.find)
 
     def union(self, i1: int, i2: int) -> None:
-        n1 = self.node(i1)
-        n2 = self.node(i2)
+        n1 = self.node(self.find(i1))
+        n2 = self.node(self.find(i2))
         n1.find = n2.find
         n2.ccpar = n1.ccpar.union(n2.ccpar)
         n1.ccpar = set()
     
     def ccpar(self, i: int) -> set:
-        return self.node(self.fin(i)).ccpar
+        return self.node(self.find(i)).ccpar
 
     def congruent(self, i1: int, i2: int) -> bool:
         n1 = self.node(i1)
@@ -53,19 +51,49 @@ class congruenceAlgorithm:
                 if self.find(t1) != self.find(t2) and self.congruent(t1, t2):
                     self.merge(t1, t2)
 
+def run(graph: nx.Graph, clauses: str) -> str:
+    myParser = Parser(graph)
+    myAlgo = CongruenceAlgorithm(graph)
+    eqSet, nonEqSet = myParser.splitEq(clauses)
+    subtermSet = myParser.subtermsSet()
+    forbiddenMerges = set()
+
+    for pair in nonEqSet:
+        firstTerm, secondTerm = pair
+        firstNode= myParser.nodeFromString(firstTerm)
+        secondNode = myParser.nodeFromString(secondTerm)
+        forbiddenMerges.add((firstNode, secondNode))
+
+    for pair in eqSet:
+        firstTerm, secondTerm = pair
+        firstId = myParser.nodeFromString(firstTerm).id
+        secondId = myParser.nodeFromString(secondTerm).id
+        if (firstId, secondId) in forbiddenMerges:
+            return "UNSAT"
+        myAlgo.merge(firstId, secondId)
+    
+    for pair in nonEqSet:
+        firstTerm, secondTerm = pair
+        firstNode= myParser.nodeFromString(firstTerm)
+        secondNode = myParser.nodeFromString(secondTerm)
+        forbiddenMerges.add((firstNode, secondNode))
+        if firstNode.find == secondNode.find:
+            return "UNSAT"
+    
+    return "SAT"
         
 
 def main(): 
     G = nx.Graph()
-    algorithm = congruenceAlgorithm(G)
     prsr = Parser(G)
 
-    clauses = "f(f(f(a)))=a & f(f(f(f(f(a)))))=a & f(a)=a "
-    graph = prsr.parse(clauses)
+    clauses = "f(x)=f(y) & x!=y"
+    prsr.parse(clauses)
+    print(run(G, clauses))
 
-    for node in graph.nodes():
-        print(graph.nodes[node]['node'])
-    print(graph.edges())
+    for node in G.nodes():
+        print(G.nodes[node]['node'])
+    print(G.edges())
 
 if __name__ == "__main__":
 	main()	
