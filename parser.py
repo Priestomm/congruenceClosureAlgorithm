@@ -44,7 +44,6 @@ class Parser:
         self.setCcpar()
 
         # Merge ccpar for duplicated nodes
-        # TODO sistemare ordine
         removed = set()
         for node in tmpG.nodes:
             for otherNode in tmpG.nodes:
@@ -161,15 +160,3 @@ class Parser:
                 return id
             id += 1
 
-
-def main():
-    prsr = Parser(nx.DiGraph())
-    clauses = "f(f(f(a)))=a & f(f(f(f(f(a)))))=a & f(a)!=a "
-    graph = prsr.parse(clauses)
-    for node in graph.nodes():
-        print(graph.nodes[node]['node'])
-    print(graph.edges())
-    
-
-if __name__ == "__main__":
-	main()	

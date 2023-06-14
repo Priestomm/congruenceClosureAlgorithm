@@ -89,11 +89,11 @@ def main():
     G = nx.Graph()
     prsr = Parser(G)
 
-    script = SmtLibParser().get_script_fname("/Users/tommasodelprete/Documents/Planning & Automated Reasoning/Automated Reasoning/QF_UF/TypeSafe/z3.1184131.smt2")
-    f= script.get_strict_formula().serialize().__str__()[1:-1]
+    script = SmtLibParser().get_script_fname(filename)
+    f = script.get_strict_formula().serialize().__str__()[1:-1]
     f = f.replace(' ', '')
 
-    f = "(f(x0)=f(y)) & (x0!=y)"
+    #f = "(f(x0)=f(y)) & (x0!=y)"
     prsr.parse(f)
     print(run(G, f))
 
