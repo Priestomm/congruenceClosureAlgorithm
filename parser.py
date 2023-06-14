@@ -11,17 +11,16 @@ class Parser:
         self.idSet = set()
 
     def parse(self, input: str):
-        clauses = set(input.split("&"))
+        input = input.split("&")
+        clauses = set(i[1:-1] for i in input)
         toParse = set()
         #clauses.split("=")
         for clause in clauses:
+            clause = clause.replace("!","")
+            if clause[0] == '(':
+                clause = clause[1:-1]
             leftSide = clause.split('=')[0]
             rightSide = clause.split('=')[1]
-            if "!=" in clause:
-                leftSide = clause.split('!=')[0]
-                rightSide = clause.split('!=')[1] 
-            leftSide = leftSide.strip()
-            rightSide = rightSide.strip()
             toParse.add(leftSide)
             toParse.add(rightSide)
         
@@ -30,7 +29,7 @@ class Parser:
 
         for string in toParse:
             for other_string in toParse:
-                if string != other_string and string in other_string:
+                if string != other_string and string in other_string and other_string[other_string.find(string)+len(string)] in ['=','(',')']:
                     repeated_strings.add(string)
                     break
 
@@ -45,6 +44,7 @@ class Parser:
         self.setCcpar()
 
         # Merge ccpar for duplicated nodes
+        # TODO sistemare ordine
         removed = set()
         for node in tmpG.nodes:
             for otherNode in tmpG.nodes:
@@ -55,26 +55,28 @@ class Parser:
                 if firstNode == secondNode and firstNode.id != secondNode.id:
                     firstNode.ccpar = firstNode.ccpar.union(secondNode.ccpar)
                     for parent in secondNode.ccpar:
-                        self.G.nodes[parent]['node'].args.remove(secondNode.id)
-                        self.G.nodes[parent]['node'].args.append(firstNode.id)
+                        self.G.nodes[parent]['node'].args[self.G.nodes[parent]['node'].args.index(secondNode.id)] = firstNode.id
                     self.G.remove_node(secondNode.id)
                     removed.add(secondNode.id)
 
         self.setEdges()
 
-        return 
     
     def splitEq(self, clauses: str):
         equalSet = set()
         nonEqualSet = set()
         clauses = clauses.split("&")
+        clauses = set(i.strip()[1:-1] for i in clauses)
         for clause in clauses:
-            if "!=" in clause:
-                sides = clause.split("!=")
-                nonEqualSet.add((sides[0].strip(), sides[1].strip()))
+            if "!" in clause:
+                clause = clause.replace('!','')
+                if clause[0] == '(':
+                    clause = clause[1:-1]
+                sides = clause.split("=")
+                nonEqualSet.add((sides[0], sides[1]))
             else:
                 sides = clause.split("=")
-                equalSet.add((sides[0].strip(), sides[1].strip()))
+                equalSet.add((sides[0], sides[1]))
 
         return equalSet, nonEqualSet
     
@@ -144,6 +146,7 @@ class Parser:
         return retString
         
     def nodeFromString(self, stringNode: str):
+
         for pair in self.subtermsSet():
             node, id = pair
             if stringNode == node:

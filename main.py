@@ -1,7 +1,9 @@
 import networkx as nx
 from parser import Parser
 from node import Node
+from pysmt.smtlib.parser import SmtLibParser
 import itertools
+import sys
 import re
     
 class CongruenceAlgorithm:
@@ -87,9 +89,13 @@ def main():
     G = nx.Graph()
     prsr = Parser(G)
 
-    clauses = "f(x)=f(y) & x!=y"
-    prsr.parse(clauses)
-    print(run(G, clauses))
+    script = SmtLibParser().get_script_fname("/Users/tommasodelprete/Documents/Planning & Automated Reasoning/Automated Reasoning/QF_UF/TypeSafe/z3.1184131.smt2")
+    f= script.get_strict_formula().serialize().__str__()[1:-1]
+    f = f.replace(' ', '')
+
+    f = "(f(x0)=f(y)) & (x0!=y)"
+    prsr.parse(f)
+    print(run(G, f))
 
     for node in G.nodes():
         print(G.nodes[node]['node'])
