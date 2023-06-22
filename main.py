@@ -3,16 +3,14 @@ from parser import Parser
 from node import Node
 from pysmt.smtlib.parser import SmtLibParser
 import itertools
-import sys
-import re
     
 class CongruenceAlgorithm:
 
-    def __init__(self, g: nx.Graph) -> None:
-        self.g = g
+    def __init__(self, G: nx.Graph) -> None:
+        self.G = G
 
     def node(self, i: int) -> Node:
-        return self.g.nodes[i]['node']
+        return self.G.nodes[i]['node']
     
      
     def find(self, i: int) -> Node:
@@ -23,9 +21,14 @@ class CongruenceAlgorithm:
     def union(self, i1: int, i2: int) -> None:
         n1 = self.node(self.find(i1))
         n2 = self.node(self.find(i2))
-        n1.find = n2.find
-        n2.ccpar = n1.ccpar.union(n2.ccpar)
-        n1.ccpar = set()
+        if len(n1.ccpar) < len(n2.ccpar):
+            n1.find = n2.find
+            n2.ccpar = n1.ccpar.union(n2.ccpar)
+            n1.ccpar = set()
+        else:
+            n2.find = n1.find
+            n1.ccpar = n2.ccpar.union(n1.ccpar)
+            n2.ccpar = set()
     
     def ccpar(self, i: int) -> set:
         return self.node(self.find(i)).ccpar
@@ -53,19 +56,21 @@ class CongruenceAlgorithm:
                 if self.find(t1) != self.find(t2) and self.congruent(t1, t2):
                     self.merge(t1, t2)
 
-def run(graph: nx.Graph, clauses: str) -> str:
-    myParser = Parser(graph)
-    myAlgo = CongruenceAlgorithm(graph)
+def run(G: nx.Graph, clauses: str) -> str:
+    myParser = Parser(G)
+    myAlgo = CongruenceAlgorithm(G)
     eqSet, nonEqSet = myParser.splitEq(clauses)
     subtermSet = myParser.subtermsSet()
     forbiddenMerges = set()
 
+    # Forbidden List implementation
     for pair in nonEqSet:
         firstTerm, secondTerm = pair
         firstNode= myParser.nodeFromString(firstTerm)
         secondNode = myParser.nodeFromString(secondTerm)
         forbiddenMerges.add((firstNode, secondNode))
 
+    # Run the algorithm
     for pair in eqSet:
         firstTerm, secondTerm = pair
         firstId = myParser.nodeFromString(firstTerm).id
@@ -74,6 +79,7 @@ def run(graph: nx.Graph, clauses: str) -> str:
             return "UNSAT"
         myAlgo.merge(firstId, secondId)
     
+    # Check for (un)satisfiability
     for pair in nonEqSet:
         firstTerm, secondTerm = pair
         firstNode= myParser.nodeFromString(firstTerm)
@@ -85,21 +91,30 @@ def run(graph: nx.Graph, clauses: str) -> str:
     return "SAT"
         
 
-def main(): 
+def main():
+
     G = nx.Graph()
     prsr = Parser(G)
 
-    script = SmtLibParser().get_script_fname(filename)
-    f = script.get_strict_formula().serialize().__str__()[1:-1]
-    f = f.replace(' ', '')
+    choice = input("Do you want to write your own set of clauses? (Y/N) ")
 
-    #f = "(f(x0)=f(y)) & (x0!=y)"
+    if choice == "Y":
+        f = input("Write your own set of clauses below\nRemember to use & to divide (in)equalities and != as a symbol for inequality and to embrace the clauses in round brackets \n").replace(' ','')
+    elif choice == "N":
+        test = input("Choose between 6 different tests: (1-6) ")
+        filename = "tests/test" + str(test) + ".smt2"
+        script = SmtLibParser().get_script_fname(filename)
+        f = script.get_strict_formula().serialize().__str__()[1:-1]
+        print("You selected: ", f)
+        f = f.replace(' ','')
+
     prsr.parse(f)
-    print(run(G, f))
+    print("Your set is -->", run(G, f))
+    
 
-    for node in G.nodes():
-        print(G.nodes[node]['node'])
-    print(G.edges())
+#    for node in G.nodes():
+#        print(G.nodes[node]['node'])
+#    print(G.edges())
 
 if __name__ == "__main__":
 	main()	

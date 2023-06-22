@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 
 class Parser:
 
-    def __init__(self, graph = None) -> None:
+    def __init__(self, G = None) -> None:
         self.myParser = nestedExpr('(',')')
-        self.G = graph
+        self.G = G
         self.idSet = set()
 
     def parse(self, input: str):
@@ -29,7 +29,7 @@ class Parser:
 
         for string in toParse:
             for other_string in toParse:
-                if string != other_string and string in other_string and other_string[other_string.find(string)+len(string)] in ['=','(',')']:
+                if string != other_string and string in other_string and other_string[other_string.find(string)+len(string)] in ['=','(',')',',']:
                     repeated_strings.add(string)
                     break
 
@@ -60,7 +60,6 @@ class Parser:
 
         self.setEdges()
 
-    
     def splitEq(self, clauses: str):
         equalSet = set()
         nonEqualSet = set()
