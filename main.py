@@ -109,10 +109,13 @@ def main():
     G = nx.DiGraph()
     prsr = Parser(G)
 
-    choice = input("Do you want to write your own set of clauses? (Y/N) ")
+    while(True):
+        choice = input("Do you want to write your own set of clauses? (Y/N) ")
+        if choice in ["Y", "N"]: break
+        print("Wrong answer, retry")
 
     if choice == "Y":
-        f = input("Write your own set of clauses below\nRemember to use & to divide (in)equalities and != as a symbol for inequality and to embrace the clauses in round brackets \n").replace(' ','')
+        f = input("Write your own set of clauses below\nRemember to use & to divide (in)equalities and != as a symbol for inequality and to embrace the clauses into round brackets \n").replace(' ','')
     elif choice == "N":
         test = input("Choose between 6 different tests: (1-6) ")
         filename = "tests/test" + str(test) + ".smt2"
