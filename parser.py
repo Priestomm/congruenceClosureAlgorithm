@@ -158,4 +158,3 @@ class Parser:
                 self.idSet.add(id)
                 return id
             id += 1
-

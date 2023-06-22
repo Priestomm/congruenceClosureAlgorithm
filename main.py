@@ -2,11 +2,12 @@ import networkx as nx
 from parser import Parser
 from node import Node
 from pysmt.smtlib.parser import SmtLibParser
+import matplotlib.pyplot as plt
 import itertools
     
 class CongruenceAlgorithm:
 
-    def __init__(self, G: nx.Graph) -> None:
+    def __init__(self, G: nx.DiGraph) -> None:
         self.G = G
 
     def node(self, i: int) -> Node:
@@ -56,7 +57,7 @@ class CongruenceAlgorithm:
                 if self.find(t1) != self.find(t2) and self.congruent(t1, t2):
                     self.merge(t1, t2)
 
-def run(G: nx.Graph, clauses: str) -> str:
+def run(G: nx.DiGraph, clauses: str) -> str:
     myParser = Parser(G)
     myAlgo = CongruenceAlgorithm(G)
     eqSet, nonEqSet = myParser.splitEq(clauses)
@@ -89,11 +90,23 @@ def run(G: nx.Graph, clauses: str) -> str:
             return "UNSAT"
     
     return "SAT"
-        
+
+def drawGraph(G: nx.DiGraph):
+    # Draw the graph
+    pos = nx.circular_layout(G)
+    nx.draw(G, pos=pos, with_labels=True)
+
+    # Add node labels
+    labels = nx.get_node_attributes(G, 'node')
+    for node, label in labels.items():
+        plt.annotate(label.fn, (pos[node][0], pos[node][1] + 0.05))
+
+    # Display the graph
+    plt.show()
 
 def main():
 
-    G = nx.Graph()
+    G = nx.DiGraph()
     prsr = Parser(G)
 
     choice = input("Do you want to write your own set of clauses? (Y/N) ")
@@ -110,6 +123,8 @@ def main():
 
     prsr.parse(f)
     print("Your set is -->", run(G, f))
+
+    drawGraph(G)
     
 
 #    for node in G.nodes():
