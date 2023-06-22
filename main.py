@@ -115,7 +115,7 @@ def main():
         print("Wrong answer, retry")
 
     if choice == "Y":
-        f = input("Write your own set of clauses below\nRemember to use & to divide (in)equalities and != as a symbol for inequality and to embrace the clauses into round brackets \n").replace(' ','')
+        f = input("Write your own set of clauses below\nRemember to use & to divide (dis)equalities and != as a symbol for disequality and to embrace the clauses into round brackets \n").replace(' ','')
     elif choice == "N":
         test = input("Choose between 6 different tests: (1-6) ")
         filename = "tests/test" + str(test) + ".smt2"
