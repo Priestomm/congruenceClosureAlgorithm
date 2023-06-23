@@ -17,3 +17,8 @@ In case you wanted to write the clauses this is the format you have to follow:
 * The different clauses have to be separeted with "&" --> (f(a)=f(b)) & (a!=b)
 * Spaces won't affect the string
 * You can use both infix and prefix notation for inequality --> (!(a=b)) is equal to (a!=b)
+
+## Colab
+I also provide a Notepad which you can run form Google Colab:
+
+https://colab.research.google.com/drive/1SDn87isTnpuXMle48LcmEBBP2pEMwqW5?usp=sharing
